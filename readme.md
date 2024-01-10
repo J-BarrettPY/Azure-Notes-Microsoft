@@ -393,12 +393,339 @@ To help identify and organize your resource groups, use a consistent naming conv
 ## Use tags to find resources
 Tags are name and value pairs that you apply to resources. For example, you can set the name environment and its value as development for all resources that aren't meant for production. In this way, you ensure that you can easily find related resources and keep them organized.
 
+--------------------------------
 
-  
+# Part 2: Implement resource management security in Azure
+
+## What is Azure RBAC?
+
+When it comes to identity and access, most organizations that are considering using the public cloud are concerned about two things:
+
+- Ensuring that when people leave the organization, they lose access to resources in the cloud.
+- Striking the right balance between autonomy and central governance; for example, giving project teams the ability to create and manage virtual machines in the cloud while centrally controlling the networks those VMs use to communicate with other resources.
+Microsoft Entra ID and Azure role-based access control (Azure RBAC) work together to make it simple to carry out these goals.
+
+## Azure subscriptions
+First, remember that each Azure subscription is associated with a single Microsoft Entra directory. Users, groups, and applications in that directory can manage resources in the Azure subscription. The subscriptions use Microsoft Entra ID for single sign-on (SSO) and access management. You can extend your on-premises Active Directory to the cloud by using **Microsoft Entra Connect**. This feature allows your employees to manage their Azure subscriptions by using their existing work identities. When you disable an on-premises Active Directory account, it __automatically__ loses access to all Azure subscriptions connected with Microsoft Entra ID.
+
+## What's Azure RBAC?
+Azure role-based access control (Azure RBAC) is an authorization system built on Azure Resource Manager that provides fine-grained access management for resources in Azure. With Azure RBAC, you can grant the exact access that users need to do their jobs. For example, you can use Azure RBAC to let one employee manage virtual machines in a subscription while another manages SQL databases within the same subscription.
+
+You can grant access by assigning the appropriate Azure role to users, groups, and applications at a certain scope. The scope of a role assignment can be a management group, subscription, a resource group, or a single resource. A role assigned at a parent scope also grants access to the child scopes contained within it. For example, a user with access to a resource group can manage all the resources it contains, like websites, virtual machines, and subnets. The Azure role that you assign dictates what resources the user, group, or application can manage within that scope.
+
+## What can I do with Azure RBAC?
+Azure RBAC allows you to grant access to Azure resources that you control. Suppose you need to manage access to resources in Azure for the development, engineering, and marketing teams. You’ve started to receive access requests, and you need to quickly learn how access management works for Azure resources.
+
+Here are some scenarios you can implement with Azure RBAC:
+
+- Allow one user to manage virtual machines in a subscription and another user to manage virtual networks
+- Allow a database administrator group to manage SQL databases in a subscription
+- Allow a user to manage all resources in a resource group, such as virtual machines, websites, and subnets
+- Allow an application to access all resources in a resource group
+
+## How does Azure RBAC work?
+You can control access to resources using Azure RBAC by creating role assignments, which control how permissions are enforced. To create a role assignment, you need three elements: a security principal, a role definition, and a scope. You can think of these elements as "who," "what," and "where."
+
+## 1. Security principal (who)
+A security principal is just a fancy name for a user, group, or application to which you want to grant access.
+
+## 2. Role definition (what you can do)
+A role definition is a collection of permissions. It's sometimes just called a role. A role definition lists the permissions the role can perform, such as read, write, and delete. Roles can be high-level, like Owner, or specific, like Virtual Machine Contributor.
+
+Azure includes several built-in roles that you can use. The following lists four fundamental built-in roles:
+
+- Owner: Has full access to all resources, including the right to delegate access to others
+- Contributor: Can create and manage all types of Azure resources, but can’t grant access to others
+- Reader: Can view existing Azure resources
+- User Access Administrator: Lets you manage user access to Azure resources
+If the built-in roles don't meet the specific needs of your organization, you can create your own custom roles.
+
+## 3. Scope (where)
+Scope is the level where the access applies. This is helpful if you want to make someone a Website Contributor, but only for one resource group.
+
+In Azure, you can specify a scope at multiple levels: management group, subscription, resource group, or resource. Scopes are structured in a parent-child relationship. When you grant access at a parent scope, those permissions are inherited by the child scopes. For example, if you assign the Contributor role to a group at the subscription scope, that role is inherited by all resource groups and resources in the subscription.
+
+## Role assignment
+Once you have determined the who, what, and where, you can combine those elements to grant access. A role assignment is the process of binding a role to a security principal at a particular scope for the purpose of granting access. To grant access, you'll create a role assignment. To revoke access, you'll remove a role assignment.
+
+## Azure RBAC is an allow model
+Azure RBAC is an allow model. This means that when you're assigned a role, Azure RBAC allows you to perform certain actions, such as read, write, or delete. So, if one role assignment grants you read permissions to a resource group and a different role assignment grants you write permissions to the same resource group, you'll have read and write permissions on that resource group.
+
+Azure RBAC has something called `NotActions` permissions. You can use `NotActions` to create a set of not allowed permissions. The access a role grants—the effective permissions—is computed by subtracting the `NotActions` operations from the `Actions` operations. For example, the Contributor role has both `Actions` and `NotActions`. The wildcard (*) in `Actions` indicates that it can perform all operations on the control plane. You'd then subtract the following operations in `NotActions` to compute the effective permissions:
+
+- Delete roles and role assignments
+- Create roles and role assignments
+- Grant the caller User Access Administrator access at the tenant scope
+- Create or update any blueprint artifacts
+- Delete any blueprint artifacts
+
+---------------------------
+
+# Understand the difference between Azure roles and Microsoft Entra roles
+
+Azure resources and Microsoft Entra ID have independent permission systems. You use Azure roles to manage access to virtual machines, storage, and other Azure resources. You use Microsoft Entra roles to manage access to Microsoft Entra resources, such as user accounts and passwords.
+
+## Azure roles
+Azure role-based access control (Azure RBAC) is the system that allows control over who has access to which Azure resources and what those people can do with those resources. You can achieve control by assigning roles to users, groups, or applications at a particular scope. A role might be described as a collection of permissions.
+
+With Azure RBAC, you can allow one user or a set of users to access resources in a subscription. You can also separate responsibility for certain resources according to the specializations within your team. For example, you might want to grant your organization's data scientists access to Azure Machine Learning and any associated resources, such as Azure SQL Database, or you might want to grant access to Azure Blob storage within a dedicated Machine Learning resource group. By granting specific access, you isolate these resources from team members who don't have the required skills or resource needs.
+
+You can specify fine-grained permissions for applications so that a marketing web app has access to only the associated marketing database and storage account. For managers or team members who are higher up in the organization, you could grant access to all resources in a resource group, a subscription for management purposes, and an overview of billing and consumption.
+
+Azure RBAC has many built-in roles, and you can create custom roles.
+
+Here are four examples of built-in roles:
+
+- Owner: Has full access to all resources, including the ability to delegate access to other users
+- Contributor: Can create and manage Azure resources
+- Reader: Can view only existing Azure resources
+- User Access Administrator: Can manage access to Azure resources  
+
+## Identify the right scope
+You can apply Azure roles at four levels of scope: management groups, subscriptions, resource groups, and resources. The following diagram illustrates the hierarchy of these four levels.
+
+Azure management groups help you manage your Azure subscriptions by grouping them together. If your organization has many subscriptions, you might need a way to efficiently manage access, policies, and compliance for those subscriptions. Azure management groups provide a level of scope above subscriptions.
+
+Azure subscriptions help you organize access to Azure resources and determine how resource usage is reported, billed, and paid for. Each subscription can have a different billing and payment setup, so you can have different subscriptions and plans by office, department, project, and so on.
+
+Resource groups are containers that hold related resources for an Azure solution. A resource group includes those resources that you want to manage as a group. You can decide which resources belong in a resource group based on what makes the most sense for your organization.
+
+The scope is important, and establishes which resources should have a specific type of access applied to them. Imagine that someone in your organization needs access to virtual machines. You could use the Virtual Machine Contributor role, which allows that person to manage virtual machines only within a specific resource group. You can limit the role's scope to a specific resource, resource group, subscription, or management group level.
+
+By combining an Azure role and a scope, you can set finely tailored permissions for your Azure resources.
+
+## Microsoft Entra roles
+Microsoft Entra ID also has its own set of roles that apply mostly to users, passwords, and domains. These roles have different purposes. Here are a few examples:
+
+- Global Administrator: Can manage access to administrative features in Microsoft Entra ID. A person in this role can grant administrator roles to other users, and they can reset a password for any user or administrator. By default, whoever signs up for the directory is automatically assigned this role.
+
+- User Administrator: Can manage all aspects of users and groups, including support tickets, monitoring service health, and resetting passwords for certain types of users.
+
+- Billing Administrator: Can make purchases, manage subscriptions and support tickets, and monitor service health. Azure has detailed billing permissions in addition to Azure RBAC permissions. The available billing permissions depend on the agreement you have with Microsoft.
+
+## Differences between Azure roles and Microsoft Entra roles
+The main difference between Azure roles and Microsoft Entra roles is the areas they cover. Azure roles apply to Azure resources, and Microsoft Entra roles apply to Microsoft Entra resources (particularly users, groups, and domains). Also, Microsoft Entra ID has only one scope: the directory. The Azure RBAC scope covers management groups, subscriptions, resource groups, and resources.
+
+The roles share a key area of overlap. A Microsoft Entra Global Administrator can elevate their access to manage all Azure subscriptions and management groups. This greater access grants them the Azure RBAC User Access Administrator role for all subscriptions of their directory. Through the User Access Administrator role, the Global Administrator can give other users access to Azure resources.
+
+In our scenario, you need to grant full Azure RBAC management and billing permissions to a new manager. To achieve this, you'll temporarily elevate your access to include the User Access Administrator role. You can then grant the new manager the Owner role so that they can create and manage resources. You'll also set the scope to the subscription level so that the manager can do this for all resources in the subscription.
+
+The following diagram shows what resources the Global Administrator can view when their permissions are elevated to User Access Administrator.
+
+## Understand when you might need to elevate your access
+
+The marketing department's Azure subscription administrator recently left the organization. As Global Administrator, you don't have access to this subscription. You now need to grant administrator access for the subscription to another person in the marketing department.
+
+## When to elevate access
+By default, a Global Administrator doesn't have access to Azure resources. The Global Administrator for Microsoft Entra ID can temporarily elevate their permissions to the Azure role of User Access Administrator. This action grants the Azure role-based access control (Azure RBAC) permissions they need to manage Azure resources. The User Access Administrator is assigned at the scope of root. The role can view all resources in and assign access to any subscription or management group in that Microsoft Entra organization.
+
+As Global Administrator, you might need to elevate your permissions to:
+
+- Regain lost access to an Azure subscription or management group.
+- Grant another user or yourself access to an Azure subscription or management group.
+- View all Azure subscriptions or management groups in an organization.
+- Grant an automation app access to all Azure subscriptions or management groups.
+After the Global Administrator elevates their permissions to User Access Administrator, they can then grant other users the Azure RBAC permissions that they need to control and manage Azure resources. When the task is complete, the Global Administrator should revoke their own elevated permissions.
+
+## Assign a user administrative access to an Azure subscription
+To assign a user administrative access to a subscription, you must have `Microsoft.Authorization/roleAssignments/write` and `Microsoft.Authorization/roleAssignments/delete` permissions at the subscription scope. Users with the subscription Owner or User Access Administrator role have these permissions.
+
+In the next unit, you'll learn how to assign a role by using the Azure portal after you've elevated your permissions to User Access Administrator. However, you can also assign roles by using Azure PowerShell, the Azure CLI, or the REST API.
+
+In the following sections, let's briefly review the commands you would use to assign the Owner role in Azure PowerShell or the Azure CLI.
+
+## Assign the role by using Azure PowerShell
+The following command shows how to assign the Owner role to a user at the subscription scope by using Azure PowerShell:
+```powershell
+New-AzRoleAssignment `
+    -SignInName rbacuser@example.com `
+    -RoleDefinitionName "Owner" `
+    -Scope "/subscriptions/<subscriptionID>"
+```
+## Assign the role by using the Azure CLI
+The following command shows how to assign the Owner role to a user at the subscription scope by using the Azure CLI:
+```powershell
+az role assignment create --assignee rbacuser@example.com --role "Owner" --scope /subscriptions/<subscription_id>/resourceGroups/<resource_group_name> --subscription <subscription_name_or_id>
+```
+
+# What are custom roles in Azure?
+
+Sometimes, built-in roles don't grant the precise level of access you need. Custom roles allow you to define roles that meet the specific needs of your organization. You can assign the Azure custom roles you create to users, groups, and service principals at the scope of subscription, resource group, or resource.
+
+## Microsoft Entra and Azure roles
+Microsoft Entra roles and Azure roles are often confused when you first work with Azure. Microsoft Entra roles provide the mechanism for managing permissions to Microsoft Entra resources, like user accounts and passwords. Azure roles provide a wealth of capabilities for managing Azure resources like virtual machines (VMs) at a granular level.
+
+| Azure roles | Microsoft Entra roles |
+| ----------- | --------------------- |
+| Manage access to Azure resources like VMs, storage, networks, and more | Manage access to Microsoft Entra resources like user accounts and passwords |
+| Multiple scope levels (management group, subscription, resource group, resource) | Scope only at tenant level |
+| Role information accessible through Azure portal, Azure CLI, Azure PowerShell, Azure Resource Manager templates, REST API | Role information accessible in Azure admin portal, Microsoft 365 admin center, Microsoft Graph, Microsoft Graph PowerShell |
 
 
+## Role definition and structure
+A custom role definition breaks down into a collection of different permissions. Each definition details the operations that are allowed, such as read, write, and delete. The definition is formed using these structures:
 
+```json
+{
+  "Name": "",
+  "IsCustom": true,
+  "Description": "",
+  "Actions": [],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/{subscriptionId1}"
+  ]
+}
+```
 
+The following example shows the role definition for the Contributor role:
+```powershell
+{
+  "Name": "Contributor",
+  "Id": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+  "IsCustom": false,
+  "Description": "Lets you manage everything except access to resources.",
+  "Actions": [
+    "*"
+  ],
+  "NotActions": [
+    "Microsoft.Authorization/*/Delete",
+    "Microsoft.Authorization/*/Write",
+    "Microsoft.Authorization/elevateAccess/Action",
+    "Microsoft.Blueprint/blueprintAssignments/write",
+    "Microsoft.Blueprint/blueprintAssignments/delete"
+  ],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/"
+  ]
+}
+```
+
+Any role definition is declared using the following format:
+
+`{Company}.{ProviderName}/{resourceType}/{action}`
+
+The action portion is typically one of the following actions:
+
+- *
+- read
+- write
+- action
+- delete
+
+## Define custom role to manage VMs
+To help you identify what permissions to include in a role definition, use the Azure Resource Manager resource provider operations list and look at built-in Azure roles that have permissions similar to what you need.
+
+## Review built-in roles
+For our scenario, the Virtual Machine Contributor built-in role has more permissions than the employee needs, and Virtual Machine Administrator Login doesn't have enough.
+
+The following Azure CLI command returns the permissions for the built-in role Virtual Machine Contributor:
+
+```powershell
+az role definition list --name "Virtual Machine Contributor" --output json | jq '.[] | .permissions[0].actions'
+```
+
+The following list displays the permissions for the built-in role Virtual Machine Contributor:
+
+```json
+[
+  "Microsoft.Authorization/*/read",
+  "Microsoft.Compute/availabilitySets/*",
+  "Microsoft.Compute/locations/*",
+  "Microsoft.Compute/virtualMachines/*",
+  "Microsoft.Compute/virtualMachineScaleSets/*",
+  "Microsoft.DevTestLab/schedules/*",
+  "Microsoft.Insights/alertRules/*",
+  "Microsoft.Network/applicationGateways/backendAddressPools/join/action",
+  "Microsoft.Network/loadBalancers/backendAddressPools/join/action",
+  "Microsoft.Network/loadBalancers/inboundNatPools/join/action",
+  "Microsoft.Network/loadBalancers/inboundNatRules/join/action",
+  "Microsoft.Network/loadBalancers/probes/join/action",
+  "Microsoft.Network/loadBalancers/read",
+  "Microsoft.Network/locations/*",
+  "Microsoft.Network/networkInterfaces/*",
+  "Microsoft.Network/networkSecurityGroups/join/action",
+  "Microsoft.Network/networkSecurityGroups/read",
+  "Microsoft.Network/publicIPAddresses/join/action",
+  "Microsoft.Network/publicIPAddresses/read",
+  "Microsoft.Network/virtualNetworks/read",
+  "Microsoft.Network/virtualNetworks/subnets/join/action",
+  "Microsoft.RecoveryServices/locations/*",
+  "Microsoft.RecoveryServices/Vaults/backupFabrics/backupProtectionIntent/write",
+  "Microsoft.RecoveryServices/Vaults/backupFabrics/protectionContainers/protectedItems/*/read",
+  "Microsoft.RecoveryServices/Vaults/backupFabrics/protectionContainers/protectedItems/read",
+  "Microsoft.RecoveryServices/Vaults/backupFabrics/protectionContainers/protectedItems/write",
+  "Microsoft.RecoveryServices/Vaults/backupPolicies/read",
+  "Microsoft.RecoveryServices/Vaults/backupPolicies/write",
+  "Microsoft.RecoveryServices/Vaults/read",
+  "Microsoft.RecoveryServices/Vaults/usages/read",
+  "Microsoft.RecoveryServices/Vaults/write",
+  "Microsoft.ResourceHealth/availabilityStatuses/read",
+  "Microsoft.Resources/deployments/*",
+  "Microsoft.Resources/subscriptions/resourceGroups/read",
+  "Microsoft.SqlVirtualMachine/*",
+  "Microsoft.Storage/storageAccounts/listKeys/action",
+  "Microsoft.Storage/storageAccounts/read",
+  "Microsoft.Support/*"
+]
+```
+
+To get this list in PowerShell, you'd run the following command:
+```powershell
+Get-AzRoleDefinition -Name "Virtual Machine Contributor" | Select Actions | ConvertTo-Json
+```
+
+For our scenario, we want a custom role that allows you to monitor and restart virtual machines for a specific subscription, so we want to include the following actions scoped at the subscription level:
+
+- Read access to the compute, network, and storage resources
+- Ability to start and restart virtual machines
+- Access to the resource groups in the subscription
+- Access to monitoring resources
+There are some operations in the Virtual Machine Contributor role definition we can use, like `"Microsoft.Insights/alertRules/*"` for monitoring, but restart and some others aren't listed as actions in that role definition.
+
+## Find resource provider operations
+We can find the VM restart action in the Azure Resource Manager resource provider operations list or by running the following PowerShell command to return operations for VMs:
+```powershell
+Get-AzProviderOperation */virtualMachines/*
+```
+
+You can use the Azure PowerShell `Get-AzProviderOperation` cmdlet to get the most current list of resource provider operations. In Azure CLI, use the `az provider operation show` command. You can find a published list of resource providers and operations in the Azure RBAC content on Docs.
+
+## Create VM Operator role definition
+Let's assume we've picked out what we need by looking at the related built-in role definitions and the resource provider operations list. We end up with the following role definition for our custom role. We'll use this role definition for our custom role.
+
+```json
+{
+   "Name": "Virtual Machine Operator",
+   "Id": "88888888-8888-8888-8888-888888888888",
+   "IsCustom": true,
+   "Description": "Can monitor and restart virtual machines.",
+   "Actions": [
+     "Microsoft.Storage/*/read",
+     "Microsoft.Network/*/read",
+     "Microsoft.Compute/*/read",
+     "Microsoft.Compute/virtualMachines/start/action",
+     "Microsoft.Compute/virtualMachines/restart/action",
+     "Microsoft.Authorization/*/read",
+     "Microsoft.ResourceHealth/availabilityStatuses/read",
+     "Microsoft.Resources/subscriptions/resourceGroups/read",
+     "Microsoft.Insights/alertRules/*",
+     "Microsoft.Support/*"
+   ],
+   "NotActions": [],
+   "DataActions": [],
+   "NotDataActions": [],
+   "AssignableScopes": [
+      "/subscriptions/{subscriptionId1}" 
+   ]
+   }
+```
+
+      
 
 
 

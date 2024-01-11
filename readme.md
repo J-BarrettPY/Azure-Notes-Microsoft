@@ -725,6 +725,163 @@ Let's assume we've picked out what we need by looking at the related built-in ro
    }
 ```
 
+---------------------------------------
+
+# What are user accounts in Microsoft Entra ID?
+
+In Microsoft Entra ID, all user accounts are granted a set of default permissions. A user's account access consists of the type of user, their role assignments, and their ownership of individual objects.
+
+There are different types of user accounts in Microsoft Entra ID. Each type has a level of access specific to the scope of work expected to be done under each type of user account. Administrators have the highest level of access, followed by the member user accounts in the Microsoft Entra organization. Guest users have the most restricted level of access.
+
+## Permissions and roles
+Microsoft Entra ID uses permissions to help you control the access rights a user or group is granted. This is done through roles. Microsoft Entra ID has many roles with different permissions attached to them. When a user is assigned a specific role, they inherit permissions from that role. For example, a user assigned to the User Administrator role can create and delete user accounts.
+
+Understanding when to assign the correct type of role to the right user is a fundamental and crucial step in maintaining privacy and security compliance. If the wrong role is assigned to the wrong user, the permissions that come with that role can allow the user to cause serious damage to an organization.
+
+## Administrator roles
+Administrator roles in Microsoft Entra ID allow users elevated access to control who is allowed to do what. You assign these roles to a limited group of users to manage identity tasks in a Microsoft Entra organization. You can assign administrator roles that allow a user to create or edit users, assign administrative roles to others, reset user passwords, manage user licenses, and more.
+
+If your user account has the User Administrator or Global Administrator role, you can create a new user in Microsoft Entra ID by using the Azure portal, the Azure CLI, or PowerShell. In PowerShell, run the cmdlet `New-MgUser`. In the Azure CLI, use `az ad user create`.
+
+## Member users
+A member user account is a native member of the Microsoft Entra organization that has a set of default permissions like being able to manage their profile information. When someone new joins your organization, they typically have this type of account created for them.
+
+Anyone who isn't a guest user or isn't assigned an administrator role falls into this type. A member user role is meant for users who are considered internal to an organization and are members of the Microsoft Entra organization. However, these users shouldn't be able to manage other users by, for example, creating and deleting users. Member users don't have the same restrictions that are typically placed on guest users.
+
+## Guest users
+Guest users have restricted Microsoft Entra organization permissions. When you invite someone to collaborate with your organization, you add them to your Microsoft Entra organization as a guest user. Then, you can either send an invitation email that contains a redemption link or send a direct link to an app you want to share. Guest users sign in with their own work, school, or social identities. By default, Microsoft Entra member users can invite guest users. Someone with the User Administrator role can disable this default.
+
+Your organization might need to work with external partners. To collaborate with your organization, these partners often need to have a certain level of access to specific resources. For this sort of situation, it's a good idea to use guest user accounts. You'll then make sure partners have the right level of access to do their work, without having a higher level of access than they need.
+
+## Add user accounts
+You can add individual user accounts through the Azure portal, Azure PowerShell, or the Azure CLI.
+
+If you want to use the Azure CLI, run the following cmdlet:
+
+```powershell
+# create a new user
+az ad user create
+```
+
+This command creates a new user by using the Azure CLI.
+
+For Azure PowerShell, run the following cmdlet:
+
+```powershell
+# create a new user
+New-MgUser
+```
+
+You can bulk create member users and guests accounts. The following example shows how to bulk invite guest users.
+
+```powershell
+$invitations = import-csv c:\bulkinvite\invitations.csv
+
+$messageInfo = [Microsoft.Graph.PowerShell.Models.MicrosoftGraphInvitation]@{ `
+   CustomizedMessageBody = "Hello. You are invited to the Contoso organization." }
+
+foreach ($email in $invitations)
+   {New-MgInvitation `
+      -InviteRedirectUrl https://myapps.microsoft.com ` 
+      -InvitedUserDisplayName $email.Name `
+      -InvitedUserEmailAddress $email.InvitedUserEmailAddress `
+      -InvitedUserMessageInfo $messageInfo `
+      -SendInvitationMessage 
+   }
+```
+
+You create the comma-separated values (CSV) file with the list of all the users you want to add. An invitation is sent to each user in that CSV file.
+
+## Delete user accounts
+You can also delete user accounts through the Azure portal, Azure PowerShell, or the Azure CLI. In PowerShell, run the cmdlet `Remove-MgUser`. In the Azure CLI, run the cmdlet `az ad user delete`.
+
+When you delete a user, the account remains in a suspended state for 30 days. During that 30-day window, the user account can be restored.
+
+-----------------------------
+
+## Manage app and resource access by using Microsoft Entra groups
+
+You want to give the all developers within your organization the same access. You also want to manage who is part of the developers group and who isn't.
+
+Microsoft Entra ID helps you to manage your cloud-based apps, on-premises apps, and resources by using your organization's groups. Your resources can be part of the Microsoft Entra organization, like permissions to manage objects through roles. Or your resources can be external to the organization, like software as a service (SaaS) apps, Azure services, SharePoint sites, and on-premises resources.
+
+## Access management in Microsoft Entra ID
+- Microsoft Entra roles: Use Microsoft Entra roles to manage Microsoft Entra ID-related resources like users, groups, billing, licensing, application registration, and more.
+- Role-based access control (RBAC) for Azure resources: Use RBAC roles to manage access to Azure resources like virtual machines, SQL databases, or storage. For example, you could assign an RBAC role to a user to manage and delete SQL databases in a specific resource group or subscription.
+
+## Access rights through single user or group assignment
+Microsoft Entra ID helps you provide access rights to a single user or to an entire group of users. You can assign a set of access permissions to all the members of the group. Access permissions range from full access to the ability to create or remove resources.
+
+There are different ways you can assign access rights:
+
+- Direct assignment: Assign a user the required access rights by directly assigning a role that has those access rights.
+- Group assignment: Assign a group the required access rights, and members of the group will inherit those rights.
+- Rule-based assignment: Use rules to determine a group membership based on user or device properties. For a user account or device's group membership to be valid, the user or device must meet the rules. If the rules aren't met, the user account or device's group membership is no longer valid. The rules can be simple. You can select prewritten rules or write your own advanced rules.
+
+## Collaborate by using guest accounts and Microsoft Entra B2B
+
+You want the external team to collaborate with the internal developer team in a process that's easy and secure. With Microsoft Entra business to business (B2B), you can add people from other companies to your Microsoft Entra tenant as guest users.
+
+If your organization has multiple Microsoft Entra tenants, you may also want to use Microsoft Entra B2B to give a user in tenant A access to resources in tenant B. Each Microsoft Entra tenant is distinct and separate from other Microsoft Entra tenants and has its own representation of identities and app registrations.
+
+## Guest user access in Microsoft Entra B2B
+In any scenario where external users need temporary or restricted access to your organization's resources, give them guest user access. You can grant guest user access with the appropriate restrictions in place, then remove access when the work is done.
+
+You can use the Azure portal to invite B2B collaboration users. Invite guest users to the Microsoft Entra organization, group, or application. After you invite a user, their account is added to Microsoft Entra ID as a guest account.
+
+The guest can get the invitation through email, or you can share the invitation to an application by using a direct link. The guest then redeems their invitation to access the resources.
+
+By default, users and administrators in Microsoft Entra ID can invite guest users, but the Global Administrator can limit or disable this ability.
+
+## Collaborate with any partner by using their identities
+If your organization has to manage the identities of each external guest user who belongs to a given partner organization, it faces increased responsibilities because it has to secure those identities. There's an increased workload to manage and administer those identities. You also have to sync accounts, manage the lifecycle of each account, and track each individual external account to meet your obligations. Your organization has to follow this procedure for every partner organization with which it wants to collaborate. Also, if something happens to those accounts, your organization is liable.
+
+With Microsoft Entra B2B, you don't have to manage your external users' identities. The partner has the responsibility to manage its own identities. External users continue to use their current identities to collaborate with your organization.
+
+For example, say you work with the external partner Giovanna Carvalho at Proseware. Her organization manages her identity as gcarvalho@proseware.com. You use that identity for the guest account in your organization's Microsoft Entra ID. After Giovanna redeems the guest account invitation, she uses the same identity (name and password) for the guest account as she does for her organization.
+
+
+## Why use Microsoft Entra B2B instead of federation?
+With Microsoft Entra B2B, you don't take on the responsibility of managing and authenticating the credentials and identities of partners. Your partners can collaborate with you even if they don't have an IT department. For example, you can collaborate with a contractor who only has a personal or business email address and no identity management solution managed by an IT department.
+
+Giving access to external users is much easier than in a federation. You don't need an AD administrator to create and manage external user accounts. Any authorized user can invite other users. A line manager could, for example, invite external users to collaborate with their team. When collaboration is no longer needed, you can easily remove these external users.
+
+A federation is more complex. A federation is where you have a trust established with another organization, or a collection of domains, for shared access to a set of resources. You might be using an on-premises identity provider and authorization service like Active Directory Federation Services (AD FS) that has an established trust with Microsoft Entra ID. To get access to resources, all users have to provide their credentials and successfully authenticate against the AD FS server. If you have someone trying to authenticate outside the internal network, you need to set up a web application proxy. 
+
+-----------------------------------
+
+# What is Microsoft Entra ID?
+
+Though they once shared a similar name, Microsoft Entra ID is not a cloud version of Windows Server Active Directory. It's also not intended as a complete replacement for an on-premises Active Directory. Instead, if you're already using a Windows AD server, you can connect it to Microsoft Entra ID to extend your directory into Azure. This approach allows users to use the same credentials to access local and cloud-based resources.
+
+A user can also use Microsoft Entra ID independently of Windows AD. Smaller companies can use Microsoft Entra ID as their only directory service to control access to their applications and SaaS products, such as Microsoft 365, Salesforce, and Dropbox.
+
+## Directories, subscriptions, and users
+Microsoft offers several cloud-based offerings today, all of which can use Microsoft Entra ID to identify users and control access:
+
+- Microsoft Azure
+- Microsoft 365
+- Microsoft Intune
+- Microsoft Dynamics 365
+When a company or organization signs up to use one of these offerings, they're assigned a default directory, an instance of Microsoft Entra ID. This directory holds the users and groups that will have access to each of the services the company has purchased. You can refer to this default directory as a tenant. A tenant represents the organization and the default directory assigned to it.
+
+A subscription in Azure is both a billing entity and a security boundary. Resources such as virtual machines, websites, and databases are associated with a single subscription. Each subscription also has a single account owner responsible for any charges incurred by resources in that subscription. If your organization wants a subscription billed to another account, you can transfer the subscription. A subscription is associated with a single Microsoft Entra directory. Multiple subscriptions can trust the same directory, but a subscription can only trust one directory.
+
+## Create and manage users
+
+Every user who needs access to Azure resources needs an Azure user account. Your user account contains all the information needed to authenticate you during the sign-in process. Once authenticated, Microsoft Entra ID builds an access token to authorize you, determine what resources you can access, and determine what you can do with those resources.
+
+You can use the Microsoft Entra ID dashboard in the Azure portal to work with user objects. Keep in mind that you can only work with a single directory at a time, but you can use the Directory + Subscription pane to switch directories. The dashboard also has a Manage tenants button in the toolbar, which makes it easy to view all your directories and switch to another available directory.
+
+## Create and manage groups
+
+A Microsoft Entra group helps organize users, which makes it easier to manage permissions. Using groups lets the resource owner (or Microsoft Entra directory owner), assign a set of access permissions to all the group members instead of having to provide the rights one by one. Groups allow you to define a security boundary, then add and remove specific users to grant or deny access with a minimum amount of effort. Even better, Microsoft Entra ID supports the ability to define membership based on rules, such as what department a user works in or the job title they have.
+
+Microsoft Entra ID allows you to define two different types of groups.
+
+- Security groups: These are the most common, and are used to manage member and computer access to shared resources for a group of users. For example, you can create a security group for a specific security policy. By doing it this way, you can give a set of permissions to all the members at once instead of having to add permissions to each member individually. This option requires a Microsoft Entra administrator.
+
+- Microsoft 365 groups: These groups provide collaboration opportunities by giving members access to a shared mailbox, calendar, files, SharePoint site, and more. This option also lets you give people outside of your organization access to the group. This option is available to users as well as admins.
       
 
 
